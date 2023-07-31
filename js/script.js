@@ -2,7 +2,7 @@ let data;
 let currentScene = 0;
 let scenes;
 
-const margin = {top: 50, right: 50, bottom: 50, left: 50};
+const margin = { top: 50, right: 50, bottom: 50, left: 50 };
 const width = 800 - margin.left - margin.right;
 const height = 600 - margin.top - margin.bottom;
 
@@ -15,13 +15,24 @@ const svg = d3.select("#visualization")
 
 const listSvgWidth = 400;
 const listSvgHeight = 600;
-    
-const listSvg = d3.select("#visualization")
-    .append("svg")
-    .attr("id", "jobTitleList")
-    .attr("width", listSvgWidth)
-    .attr("height", listSvgHeight)
-    .attr("x", width + margin.left + margin.right + 20);  // 20px gap between main SVG and list SVG
+
+// Use this SVG for the job titles list on the right side.
+// const listSvg = d3.select("#visualization")
+//     .append("svg")
+//     .attr("id", "jobTitleList")
+//     .attr("width", listSvgWidth)
+//     .attr("height", listSvgHeight)
+//     .attr("x", width + margin.left + margin.right + 20); // 20px gap between main SVG and list SVG
+
+const listSvg = d3.select("#visualization").select("#jobTitleList")
+
+// Add initial text to the listSvg. This will be changed based on interaction.
+listSvg.append("text")
+    .attr("x", 10)
+    .attr("y", 20)
+    .attr("font-size", "16px")
+    .attr("id", "defaultListText")
+    .text("Default text for the scene.");
 
 const prevButton = document.getElementById('prevScene');
 const nextButton = document.getElementById('nextScene');
@@ -68,6 +79,16 @@ function populateDropdown() {
 }
 
 function drawScene() {
+
+    listSvg.selectAll("text").remove(); // Clear previous details
+    listSvg.append("text") // Add default message
+        .attr("id", "defaultListText")
+        .attr("x", 10)
+        .attr("y", 30)
+        .attr("font-size", "16px")
+        .text("Details will appear here...");
+
+
     scenes[currentScene](data);
     updateButtonStates();
 }
@@ -77,32 +98,34 @@ function updateButtonStates() {
     nextButton.disabled = currentScene === scenes.length - 1;
 }
 
-
 function renderJobTitles(jobTitles) {
-    const listSvg = d3.select("#jobTitleList");
-    listSvg.selectAll("*").remove();
+    // Update existing text elements
+    const texts = listSvg.selectAll("text")
+        .data(jobTitles);
 
-    listSvg.selectAll("text")
-        .data(jobTitles)
-        .enter()
+    texts.enter() // For any additional data points
         .append("text")
         .attr("x", 10)
+        .attr("font-size", "16px")
+        .merge(texts) // Combine enter and update selections
         .attr("y", (d, i) => 20 + (i * 30))
-        .text(d => `${d.title}: ${d.frequency}%`)
-        .attr("font-size", "16px");
+        .text(d => `${d.title}: ${d.frequency}%`);
+
+    texts.exit().remove(); // Remove excess text elements if any
 }
-    
+
+
 function computeTopJobTitles(dataRange) {
     const jobTitles = d3.group(dataRange, d => d.job_title);
-    const sortedTitles = Array.from(jobTitles, ([key, value]) => ({title: key, count: value.length}))
+    const sortedTitles = Array.from(jobTitles, ([key, value]) => ({ title: key, count: value.length }))
         .sort((a, b) => b.count - a.count);
 
     const total = d3.sum(sortedTitles, d => d.count);
     const top5 = sortedTitles.slice(0, 5);
     const otherCount = total - d3.sum(top5, d => d.count);
-    
+
     if (otherCount > 0) {
-        top5.push({title: 'Other', count: otherCount});
+        top5.push({ title: 'Other', count: otherCount });
     }
 
     return top5.map(d => ({
@@ -112,18 +135,20 @@ function computeTopJobTitles(dataRange) {
 }
 
 function renderJobLevelPercentages(levelPercentages) {
-    console.log("Rendering job level percentages:", levelPercentages);
-    listSvg.selectAll("*").remove();
+    const texts = listSvg.selectAll("text")
+        .data(levelPercentages);
 
-    listSvg.selectAll("text")
-        .data(levelPercentages)
-        .enter()
+    texts.enter()
         .append("text")
         .attr("x", 10)
+        .attr("font-size", "16px")
+        .merge(texts)
         .attr("y", (d, i) => 20 + (i * 30))
-        .text(d => `${d.level}: ${d.percentage}%`)
-        .attr("font-size", "16px");
+        .text(d => `${d.level}: ${d.percentage}%`);
+
+    texts.exit().remove();
 }
+
 
 function computeJobLevelPercentages(data, remoteStatus) {
     const ratioMapping = {
@@ -131,7 +156,7 @@ function computeJobLevelPercentages(data, remoteStatus) {
         "Partially Remote": 50,
         "Fully Remote": 100
     };
-    
+
     // Filter data for the given remote status
     const filteredData = data.filter(d => d.remote_ratio === remoteStatus);
 
@@ -167,6 +192,7 @@ function computeJobLevelPercentages(data, remoteStatus) {
 
 function drawScene1(data) {
     svg.selectAll("*").remove();
+    listSvg.select("#defaultListText").text("Click on a bar for more details.");
 
     const yearData = data.filter(d => d.work_year === 2023);
 
@@ -202,10 +228,10 @@ function drawScene1(data) {
         .on("click", function(event, d) {
             // Fetch the data range for the clicked bar
             const salariesRange = yearData.filter(data => data.salary_in_usd >= d.x0 && data.salary_in_usd < d.x1);
-    
+
             // Compute the top 5 job titles
             const topJobTitles = computeTopJobTitles(salariesRange);
-    
+
             // Render them on the SVG
             renderJobTitles(topJobTitles);
         });
@@ -213,6 +239,7 @@ function drawScene1(data) {
 
 function drawScene2(data) {
     svg.selectAll("*").remove();
+    listSvg.select("#defaultListText").text("Click on a bar to see job level percentages.");
 
     const yearData = data.filter(d => d.work_year === 2023);
     const remoteStatusesLabels = ["No Remote Work", "Partially Remote", "Fully Remote"];
@@ -224,7 +251,7 @@ function drawScene2(data) {
         { ratio: 50, label: "Partially Remote" },
         { ratio: 100, label: "Fully Remote" },
     ];
-    
+
     const avgSalaries = remoteStatuses.map(status => {
         const salaries = yearData.filter(d => d.remote_ratio == status.ratio).map(d => d.salary_in_usd);
         const avgSalary = d3.mean(salaries);
@@ -273,6 +300,7 @@ function drawScene2(data) {
 
 function drawScene3(data, experienceLevel = "EN") {
     svg.selectAll("*").remove();
+    listSvg.select("#defaultListText").text("Information on experience levels.");
 
     const levelData = data.filter(d => d.experience_level === experienceLevel);
     const years = Array.from(new Set(levelData.map(d => +d.work_year))); // Convert string to number using '+'
