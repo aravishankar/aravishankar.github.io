@@ -1,0 +1,72 @@
+body {
+    font-family: 'Arial', sans-serif;
+    padding: 20px;
+    background-color: #f7f7f7;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #2E86C1;
+    color: #ffffff;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+button:hover {
+    background-color: #1f5a89;
+}
+
+button:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+}
+
+#visualization {
+    margin-top: 20px;
+}
+
+#visualization rect {
+    fill: #3498db;
+    transition: fill 0.3s;
+}
+
+#visualization rect:hover {
+    fill: #2980b9;
+}
+
+.arc path {
+    stroke: #fff;
+    transition: fill 0.3s;
+}
+
+.arc path:hover {
+    fill-opacity: 0.7;
+}
+
+.arc text {
+    font-size: 12px;
+    text-anchor: middle;
+}
+
+path {
+    fill: none;
+    stroke: #e74c3c;
+    stroke-width: 2.5;
+}
+
+ .bar {
+    fill: steelblue;
+}
+
+.line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2px;
+}
+
+button:disabled {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+}
