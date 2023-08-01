@@ -174,10 +174,13 @@ function computeJobLevelPercentages(data, remoteStatus) {
 function drawScene1(data) {
     svg.selectAll("*").remove();
     // listSvg.select("#defaultListText").text("Click on a bar to see the distribution of the most \\n common jobs for that salary range.");
-    document.getElementById("jobTitleList").textContent = "Click on a bar to see the distribution of the most common jobs for that salary range in 2023!";
+    document.getElementById("jobTitleList").textContent = "Click on a bar to see the distribution of the most common jobs for that salary range at a chosen year!";
 
+    const selectedYear = +document.getElementById("yearRange").value;
+    document.getElementById("selectedYear").textContent = selectedYear;
 
-    const yearData = data.filter(d => d.work_year === 2023);
+    const yearData = data.filter(d => d.work_year === selectedYear);
+    // const yearData = data.filter(d => d.work_year === 2023);
 
     const xScale = d3.scaleLinear()
         .domain([0, d3.max(yearData, d => d.salary_in_usd)])
@@ -231,11 +234,15 @@ function drawScene1(data) {
 
 function drawScene2(data) {
     svg.selectAll("*").remove();
-    document.getElementById("jobTitleList").textContent = "Click on a bar to see job level percentages for that remote status!";
+    document.getElementById("jobTitleList").textContent = "Click on a bar to see job level percentages for that remote status at a chosen!";
 
     // console.log(data.filter(d => d.remote_ratio === '0'));
 
-    const yearData = data.filter(d => d.work_year === 2023);
+    const selectedYear = +document.getElementById("yearRange").value;
+    document.getElementById("selectedYear").textContent = selectedYear;
+
+    const yearData = data.filter(d => d.work_year === selectedYear);
+    // const yearData = data.filter(d => d.work_year === 2023);
     const remoteStatusesLabels = ["No Remote Work", "Partially Remote", "Fully Remote"];
 
     // console.log('Year data:', yearData);
