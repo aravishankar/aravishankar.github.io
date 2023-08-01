@@ -6,33 +6,21 @@ const margin = { top: 50, right: 50, bottom: 50, left: 50 };
 const width = 800 - margin.left - margin.right;
 const height = 600 - margin.top - margin.bottom;
 
-const svg = d3.select("#visualization")
+const svg = d3.select("#visualization").select("#chartArea")
     .append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-const listSvgWidth = 400;
-const listSvgHeight = 600;
+// const listSvgWidth = 400;
+// const listSvgHeight = 600;
 
-// Use this SVG for the job titles list on the right side.
-// const listSvg = d3.select("#visualization")
-//     .append("svg")
-//     .attr("id", "jobTitleList")
-//     .attr("width", listSvgWidth)
-//     .attr("height", listSvgHeight)
-//     .attr("x", width + margin.left + margin.right + 20); // 20px gap between main SVG and list SVG
-
-const listSvg = d3.select("#visualization").select("#jobTitleList")
+// const listSvg = d3.select("#visualization").select("#jobTitleList")
 
 // Add initial text to the listSvg. This will be changed based on interaction.
-listSvg.append("text")
-    .attr("x", 10)
-    .attr("y", 20)
-    .attr("font-size", "16px")
-    .attr("id", "defaultListText")
-    .text("Default text for the scene.");
+document.getElementById("jobTitleList").textContent = "Default text for the scene.";
+
 
 const prevButton = document.getElementById('prevScene');
 const nextButton = document.getElementById('nextScene');
@@ -80,13 +68,15 @@ function populateDropdown() {
 
 function drawScene() {
 
-    listSvg.selectAll("text").remove(); // Clear previous details
-    listSvg.append("text") // Add default message
-        .attr("id", "defaultListText")
-        .attr("x", 10)
-        .attr("y", 30)
-        .attr("font-size", "16px")
-        .text("Details will appear here...");
+    document.getElementById("jobTitleList").textContent = "Default text for the scene.";
+
+
+    if (currentScene === 3) {
+        console.log("got here")
+        document.getElementById('experienceDropdown').style.display = 'block';
+    } else {
+        document.getElementById('experienceDropdown').style.display = 'none';
+    }
 
 
     scenes[currentScene](data);
@@ -96,22 +86,6 @@ function drawScene() {
 function updateButtonStates() {
     prevButton.disabled = currentScene === 0;
     nextButton.disabled = currentScene === scenes.length - 1;
-}
-
-function renderJobTitles(jobTitles) {
-    // Update existing text elements
-    const texts = listSvg.selectAll("text")
-        .data(jobTitles);
-
-    texts.enter() // For any additional data points
-        .append("text")
-        .attr("x", 10)
-        .attr("font-size", "16px")
-        .merge(texts) // Combine enter and update selections
-        .attr("y", (d, i) => 20 + (i * 30))
-        .text(d => `${d.title}: ${d.frequency}%`);
-
-    texts.exit().remove(); // Remove excess text elements if any
 }
 
 
@@ -134,56 +108,63 @@ function computeTopJobTitles(dataRange) {
     }));
 }
 
-function renderJobLevelPercentages(levelPercentages) {
-    const texts = listSvg.selectAll("text")
-        .data(levelPercentages);
+// function computeJobLevelPercentages(data, remoteStatus) {
+//     const ratioMapping = {
+//         "No Remote Work": 0,
+//         "Partially Remote": 50,
+//         "Fully Remote": 100
+//     };
 
-    texts.enter()
-        .append("text")
-        .attr("x", 10)
-        .attr("font-size", "16px")
-        .merge(texts)
-        .attr("y", (d, i) => 20 + (i * 30))
-        .text(d => `${d.level}: ${d.percentage}%`);
+//     // Filter data for the given remote status
+//     const filteredData = data.filter(d => d.remote_ratio === remoteStatus);
 
-    texts.exit().remove();
-}
+//     console.log(`Data for remoteStatus ${remoteStatus}:`, filteredData);
+//     // Count occurrences for each job level
+//     const levelCounts = {};
+//     filteredData.forEach(d => {
+//         if (levelCounts[d.experience_level]) {
+//             levelCounts[d.experience_level]++;
+//         } else {
+//             levelCounts[d.experience_level] = 1;
+//         }
+//     });
 
+//     // Convert counts to percentages
+//     const total = filteredData.length;
+//     const levelPercentages = Object.keys(levelCounts).map(level => {
+//         return {
+//             level: level,
+//             percentage: ((levelCounts[level] / total) * 100).toFixed(2)
+//         };
+//     });
+
+//     // Sort by percentage for consistent ordering
+//     levelPercentages.sort((a, b) => b.percentage - a.percentage);
+
+//     return levelPercentages;
+// }
 
 function computeJobLevelPercentages(data, remoteStatus) {
-    const ratioMapping = {
-        "No Remote Work": 0,
-        "Partially Remote": 50,
-        "Fully Remote": 100
-    };
-
-    // Filter data for the given remote status
+    // Filter data based on remote status
+    // console.log(data)
+    console.log(remoteStatus)
     const filteredData = data.filter(d => d.remote_ratio === remoteStatus);
+    console.log(filteredData)
+        // Compute percentages for different job levels
+        // Again, this is a hypothetical example and might need adjustments.
+    const totalEntries = filteredData.length;
+    const entryLevelCount = filteredData.filter(d => d.experience_level === 'EN').length;
+    const midLevelCount = filteredData.filter(d => d.experience_level === 'MI').length;
+    const seniorLevelCount = filteredData.filter(d => d.experience_level === 'SE').length;
+    const managerCount = filteredData.filter(d => d.experience_level === 'EX').length;
+    console.log(entryLevelCount, midLevelCount, seniorLevelCount, managerCount, totalEntries)
 
-    console.log(`Data for remoteStatus ${remoteStatus}:`, filteredData);
-    // Count occurrences for each job level
-    const levelCounts = {};
-    filteredData.forEach(d => {
-        if (levelCounts[d.experience_level]) {
-            levelCounts[d.experience_level]++;
-        } else {
-            levelCounts[d.experience_level] = 1;
-        }
-    });
-
-    // Convert counts to percentages
-    const total = filteredData.length;
-    const levelPercentages = Object.keys(levelCounts).map(level => {
-        return {
-            level: level,
-            percentage: ((levelCounts[level] / total) * 100).toFixed(2)
-        };
-    });
-
-    // Sort by percentage for consistent ordering
-    levelPercentages.sort((a, b) => b.percentage - a.percentage);
-
-    return levelPercentages;
+    return [
+        { title: 'Entry Level', percentage: `${(entryLevelCount / totalEntries * 100).toFixed(2)}%` },
+        { title: 'Mid Level', percentage: `${(midLevelCount / totalEntries * 100).toFixed(2)}%` },
+        { title: 'Senior Level', percentage: `${(seniorLevelCount / totalEntries * 100).toFixed(2)}%` },
+        { title: 'Manager/Director', percentage: `${(managerCount / totalEntries * 100).toFixed(2)}%` }
+    ];
 }
 
 
@@ -192,7 +173,9 @@ function computeJobLevelPercentages(data, remoteStatus) {
 
 function drawScene1(data) {
     svg.selectAll("*").remove();
-    listSvg.select("#defaultListText").text("Click on a bar for more details.");
+    // listSvg.select("#defaultListText").text("Click on a bar to see the distribution of the most \\n common jobs for that salary range.");
+    document.getElementById("jobTitleList").textContent = "Click on a bar to see the distribution of the most common jobs for that salary range in 2023!";
+
 
     const yearData = data.filter(d => d.work_year === 2023);
 
@@ -231,15 +214,26 @@ function drawScene1(data) {
 
             // Compute the top 5 job titles
             const topJobTitles = computeTopJobTitles(salariesRange);
-
-            // Render them on the SVG
-            renderJobTitles(topJobTitles);
+            console.log(topJobTitles)
+                // Render them on the SVG
+                // renderJobTitles(topJobTitles);
+                // Select the container
+            const jobTitleContainer = d3.select("#jobTitleList");
+            jobTitleContainer.node().innerHTML = "";
+            // Bind the data and create divs for each job title
+            const jobDivs = jobTitleContainer.selectAll("div")
+                .data(topJobTitles)
+                .join("div")
+                .attr("class", "jobDiv") // Add a class for styling, if required
+                .text(d => `${d.title} (${d.frequency}%)`); // Display the title and frequency together
         });
 }
 
 function drawScene2(data) {
     svg.selectAll("*").remove();
-    listSvg.select("#defaultListText").text("Click on a bar to see job level percentages.");
+    document.getElementById("jobTitleList").textContent = "Click on a bar to see job level percentages for that remote status!";
+
+    // console.log(data.filter(d => d.remote_ratio === '0'));
 
     const yearData = data.filter(d => d.work_year === 2023);
     const remoteStatusesLabels = ["No Remote Work", "Partially Remote", "Fully Remote"];
@@ -287,20 +281,31 @@ function drawScene2(data) {
         .on("click", function(event, d) {
             console.log("button clicked")
             const ratioMapping = {
-                "No Remote Work": 0,
-                "Partially Remote": 50,
-                "Fully Remote": 100
+                "No Remote Work": '0',
+                "Partially Remote": '50',
+                "Fully Remote": '100'
             };
 
-            const levelPercentages = computeJobLevelPercentages(data, d.remoteStatus);
-            renderJobLevelPercentages(levelPercentages);
+            const levelPercentages = computeJobLevelPercentages(data, ratioMapping[d.remoteStatus]);
+            // Clear existing content
+            d3.select("#jobTitleList").node().innerHTML = "";
+
+            // Render the new percentages
+            d3.select("#jobTitleList")
+                .selectAll("div")
+                .data(levelPercentages)
+                .enter()
+                .append("div")
+                .text(d => `${d.title}: ${d.percentage}`);
+            // renderJobLevelPercentages(levelPercentages);
         });
 }
 
 
 function drawScene3(data, experienceLevel = "EN") {
     svg.selectAll("*").remove();
-    listSvg.select("#defaultListText").text("Information on experience levels.");
+    document.getElementById('experienceDropdown').style.display = 'block';
+    document.getElementById("jobTitleList").textContent = "Use the dropdown to see salary trends for AI/ML Professionals of different levels of experience!";
 
     const levelData = data.filter(d => d.experience_level === experienceLevel);
     const years = Array.from(new Set(levelData.map(d => +d.work_year))); // Convert string to number using '+'
