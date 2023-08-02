@@ -7,26 +7,39 @@
     <title>AI/ML Salary Analysis</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://unpkg.com/d3-svg-annotation@2"></script>
 </head>
 
 <body>
-    <h1 id="title" style="text-align: center; margin-bottom: 10px;">AI/ML Salary Analysis</h1>
+    <h1 id="title" style="text-align: center; margin-bottom: 10px;">Exploring AI/ML Career Landscapes: Salaries, Remote Work, and Trends (2020-2023)</h1>
+    <p class="intro">Navigating the dynamic world of AI/ML professions demands a keen understanding of its evolving compensation structures and work arrangements. This interactive exploration dives into the salary distributions, remote work preferences, and overarching
+        trends witnessed from 2020 to 2023.</p>
+    <p class="intro">Traverse through histograms showcasing salary distributions, bar graphs highlighting remote work statuses, and line charts mapping out salary trajectories over time. Whether you're an aspiring AI/ML professional, an industry leader, or an enthusiast,
+        this interactive slideshow equips you with crucial insights into the changing landscape of AI/ML careers.</p>
+
     <div id="sceneContainer">
-        <h2 id="chartTitle" style="text-align: center; margin-bottom: 10px;"></h2>
+        <h2 id="chartTitle" style="text-align: center; margin-bottom: 10px;">Chart Title Here</h2>
         <!-- You can add a relevant title here or leave it blank if you're setting it using JS -->
         <div id="visualization">
             <div id="chartArea">
                 <!-- Your chart would go here -->
             </div>
             <div id="listAndButtons">
+                <h3 class="title" id="listSvgTitle">List Title Here</h3>
                 <div id="jobTitleList" width="400" height="600">
                     <text x="10" y="30" font-size="16px"></text>
                 </div>
                 <select id="experienceDropdown">
                     <!-- Option values will be dynamically populated -->
                 </select>
+                <p id="sliderLabel">Select Year:</p>
                 <div id="sliderContainer">
-                    <input type="range" min="2000" max="2023" value="2023" step="1" id="yearRange" />
+
+                    <span id="selectedYear0">2020</span>
+                    <input type="range" min="2020" max="2023" value="2023" step="1" id="yearRange" list="tickmarks" />
+                    <datalist id="tickmarks">
+                        <!-- Tick marks will be added here -->
+                    </datalist>
                     <span id="selectedYear">2023</span>
                 </div>
                 <div id="buttonsContainer">

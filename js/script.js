@@ -35,6 +35,16 @@ d3.csv('data/salaries.csv').then(rawData => {
     scenes = [drawScene1, drawScene2, drawScene3];
     populateDropdown();
     drawScene();
+
+    const uniqueYears = Array.from(new Set(data.map(d => d.work_year))).sort();
+    const datalist = document.getElementById('tickmarks');
+
+    uniqueYears.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        datalist.appendChild(option);
+    });
+
 });
 
 nextButton.addEventListener('click', function() {
@@ -49,13 +59,26 @@ prevButton.addEventListener('click', function() {
     updateButtonStates();
 });
 
+document.getElementById("yearRange").addEventListener('input', function() {
+    drawScene();
+});
+
 function populateDropdown() {
+
+    const experienceLevelMapping = {
+        "EN": "Entry-Level",
+        "MI": "Mid-level",
+        "SE": "Senior-level",
+        "EX": "Executive-level/Director",
+        // Add other mappings here if necessary
+    };
+
     const experienceLevels = Array.from(new Set(data.map(d => d.experience_level)));
     const dropdown = document.getElementById("experienceDropdown");
     experienceLevels.forEach(level => {
         const option = document.createElement("option");
         option.value = level;
-        option.textContent = level;
+        option.textContent = experienceLevelMapping[level];
         dropdown.appendChild(option);
     });
 
@@ -69,7 +92,17 @@ function populateDropdown() {
 function drawScene() {
 
     document.getElementById("jobTitleList").textContent = "Default text for the scene.";
-
+    if (currentScene === 0 || currentScene === 1) {
+        document.getElementById('selectedYear0').style.display = 'inline-block';
+        document.getElementById('yearRange').style.display = 'inline-block';
+        document.getElementById('selectedYear').style.display = 'inline-block';
+        document.getElementById('sliderLabel').style.display = 'inline-block';
+    } else {
+        document.getElementById('selectedYear0').style.display = 'none';
+        document.getElementById('yearRange').style.display = 'none';
+        document.getElementById('selectedYear').style.display = 'none';
+        document.getElementById('sliderLabel').style.display = 'none';
+    }
 
     if (currentScene === 3) {
         console.log("got here")
@@ -108,47 +141,11 @@ function computeTopJobTitles(dataRange) {
     }));
 }
 
-// function computeJobLevelPercentages(data, remoteStatus) {
-//     const ratioMapping = {
-//         "No Remote Work": 0,
-//         "Partially Remote": 50,
-//         "Fully Remote": 100
-//     };
-
-//     // Filter data for the given remote status
-//     const filteredData = data.filter(d => d.remote_ratio === remoteStatus);
-
-//     console.log(`Data for remoteStatus ${remoteStatus}:`, filteredData);
-//     // Count occurrences for each job level
-//     const levelCounts = {};
-//     filteredData.forEach(d => {
-//         if (levelCounts[d.experience_level]) {
-//             levelCounts[d.experience_level]++;
-//         } else {
-//             levelCounts[d.experience_level] = 1;
-//         }
-//     });
-
-//     // Convert counts to percentages
-//     const total = filteredData.length;
-//     const levelPercentages = Object.keys(levelCounts).map(level => {
-//         return {
-//             level: level,
-//             percentage: ((levelCounts[level] / total) * 100).toFixed(2)
-//         };
-//     });
-
-//     // Sort by percentage for consistent ordering
-//     levelPercentages.sort((a, b) => b.percentage - a.percentage);
-
-//     return levelPercentages;
-// }
-
-function computeJobLevelPercentages(data, remoteStatus) {
+function computeJobLevelPercentages(data, remoteStatus, year) {
     // Filter data based on remote status
     // console.log(data)
     console.log(remoteStatus)
-    const filteredData = data.filter(d => d.remote_ratio === remoteStatus);
+    const filteredData = data.filter(d => d.remote_ratio === remoteStatus && d.work_year === year);
     console.log(filteredData)
         // Compute percentages for different job levels
         // Again, this is a hypothetical example and might need adjustments.
@@ -174,7 +171,9 @@ function computeJobLevelPercentages(data, remoteStatus) {
 function drawScene1(data) {
     svg.selectAll("*").remove();
     // listSvg.select("#defaultListText").text("Click on a bar to see the distribution of the most \\n common jobs for that salary range.");
-    document.getElementById("jobTitleList").textContent = "Click on a bar to see the distribution of the most common jobs for that salary range at a chosen year!";
+    document.getElementById("jobTitleList").textContent = "As years went on, the prevalance of AI/ML careers quickly grew and stabilized as a profession here to stay.  Companies expanded roles to reflect the need for increasing levels of expertise and managerial heirarchy.  Click on a bar to see the distribution of the most common jobs for that salary range at a chosen year!";
+    document.getElementById("listSvgTitle").textContent = "A Surge of Jobs:";
+    document.getElementById("chartTitle").textContent = "Histogram of AI/ML Job Salaries in USD";
 
     const selectedYear = +document.getElementById("yearRange").value;
     document.getElementById("selectedYear").textContent = selectedYear;
@@ -204,6 +203,9 @@ function drawScene1(data) {
     svg.append("g")
         .call(d3.axisLeft(yScale));
 
+    var annotation_height = 68;
+    if (selectedYear === 2022) { annotation_height = 115; } else if (selectedYear === 2021 || selectedYear === 2020) { annotation_height = 4; }
+
     svg.selectAll("rect")
         .data(bins)
         .enter().append("rect")
@@ -230,11 +232,32 @@ function drawScene1(data) {
                 .attr("class", "jobDiv") // Add a class for styling, if required
                 .text(d => `${d.title} (${d.frequency}%)`); // Display the title and frequency together
         });
+
+    const annotations = [{
+        note: {
+            title: "Very High Salaries",
+            label: "The median salary for AI/ML professionals in 2023 is $130,000.\nThat's over double the national average salary!",
+            wrapSplitter: /\n/ // To support newline characters
+        },
+        x: xScale(130000), // hypothetical salary value
+        y: yScale(annotation_height), // hypothetical frequency value
+        dy: -50,
+        dx: 10
+    }];
+
+    const makeAnnotations = d3.annotation()
+        .annotations(annotations);
+
+    svg.append("g")
+        .attr("class", "annotation-group")
+        .call(makeAnnotations);
 }
 
 function drawScene2(data) {
     svg.selectAll("*").remove();
-    document.getElementById("jobTitleList").textContent = "Click on a bar to see job level percentages for that remote status at a chosen!";
+    document.getElementById("jobTitleList").textContent = "As remote-work technology boomed, AI/ML careers had strong remote-work elements.  Due to the nature of the workforce, as time moved on, highly experienced employees opted to stay at home, while less experienced workers went into the office.  Click a bar to see the distribution of employee experience levels for a given remote-work status and year!";
+    document.getElementById("listSvgTitle").textContent = "Work-From-Home Culture:";
+    document.getElementById("chartTitle").textContent = "Frequency of Jobs Based on Remote Work Status";
 
     // console.log(data.filter(d => d.remote_ratio === '0'));
 
@@ -293,7 +316,7 @@ function drawScene2(data) {
                 "Fully Remote": '100'
             };
 
-            const levelPercentages = computeJobLevelPercentages(data, ratioMapping[d.remoteStatus]);
+            const levelPercentages = computeJobLevelPercentages(data, ratioMapping[d.remoteStatus], selectedYear);
             // Clear existing content
             d3.select("#jobTitleList").node().innerHTML = "";
 
@@ -306,13 +329,34 @@ function drawScene2(data) {
                 .text(d => `${d.title}: ${d.percentage}`);
             // renderJobLevelPercentages(levelPercentages);
         });
+
+    const annotations = [{
+        note: {
+            title: "Remote Work Popularity",
+            label: "Remote AI/ML jobs are roughly as \ncommon as Non-Remote AI/ML jobs.\nFlexible!",
+            wrapSplitter: /\n/ // To support newline characters
+        },
+        x: xScale('Fully Remote'), // hypothetical salary value
+        y: yScale(80000), // hypothetical frequency value
+        dy: -50,
+        dx: -20
+    }];
+
+    const makeAnnotations = d3.annotation()
+        .annotations(annotations);
+
+    svg.append("g")
+        .attr("class", "annotation-group")
+        .call(makeAnnotations);
 }
 
 
 function drawScene3(data, experienceLevel = "EN") {
     svg.selectAll("*").remove();
     document.getElementById('experienceDropdown').style.display = 'block';
-    document.getElementById("jobTitleList").textContent = "Use the dropdown to see salary trends for AI/ML Professionals of different levels of experience!";
+    document.getElementById("jobTitleList").textContent = "As the AI craze took over many companies, pay for AI/ML jobs became much more competetive, especially for less-experienced employees with unique and cutting edge skillsets.  Use the dropdown to see salary trends for AI/ML Professionals of different levels of experience!";
+    document.getElementById("listSvgTitle").textContent = "AI/ML Salaries Surge";
+    document.getElementById("chartTitle").textContent = "Salary Trends of AI/ML Jobs Over 2020-2023";
 
     const levelData = data.filter(d => d.experience_level === experienceLevel);
     const years = Array.from(new Set(levelData.map(d => +d.work_year))); // Convert string to number using '+'
@@ -349,4 +393,29 @@ function drawScene3(data, experienceLevel = "EN") {
         .data([avgSalaries])
         .attr("class", "line")
         .attr("d", line);
+
+    const avgSalariesMap = new Map();
+    avgSalariesMap.set("EN", 54900);
+    avgSalariesMap.set("MI", 82100);
+    avgSalariesMap.set("SE", 126000);
+    avgSalariesMap.set("EX", 186000);
+
+    const annotations = [{
+        note: {
+            title: "2021 Dip in Salaries",
+            label: "Due to the COVID-19 pandemic, average salaries of AI/ML \nworkers of all levels dropped.  However, they became much \nhigher in later years!",
+            wrapSplitter: /\n/ // To support newline characters
+        },
+        x: xScale(2021), // hypothetical salary value
+        y: yScale(avgSalariesMap.get(experienceLevel)), // hypothetical frequency value
+        dy: 50,
+        dx: 20
+    }];
+
+    const makeAnnotations = d3.annotation()
+        .annotations(annotations);
+
+    svg.append("g")
+        .attr("class", "annotation-group")
+        .call(makeAnnotations);
 }
