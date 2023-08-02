@@ -13,11 +13,6 @@ const svg = d3.select("#visualization").select("#chartArea")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-// const listSvgWidth = 400;
-// const listSvgHeight = 600;
-
-// const listSvg = d3.select("#visualization").select("#jobTitleList")
-
 // Add initial text to the listSvg. This will be changed based on interaction.
 document.getElementById("jobTitleList").textContent = "Default text for the scene.";
 
@@ -70,7 +65,6 @@ function populateDropdown() {
         "MI": "Mid-level",
         "SE": "Senior-level",
         "EX": "Executive-level/Director",
-        // Add other mappings here if necessary
     };
 
     const experienceLevels = Array.from(new Set(data.map(d => d.experience_level)));
@@ -164,13 +158,8 @@ function computeJobLevelPercentages(data, remoteStatus, year) {
     ];
 }
 
-
-// ... [Rest of your code for drawScene1, drawScene2, drawScene3]
-
-
 function drawScene1(data) {
     svg.selectAll("*").remove();
-    // listSvg.select("#defaultListText").text("Click on a bar to see the distribution of the most \\n common jobs for that salary range.");
     document.getElementById("jobTitleList").textContent = "As years went on, the prevalance of AI/ML careers quickly grew and stabilized as a profession here to stay.  Companies expanded roles to reflect the need for increasing levels of expertise and managerial heirarchy.  Click on a bar to see the distribution of the most common jobs for that salary range at a chosen year!";
     document.getElementById("listSvgTitle").textContent = "A Surge of Jobs:";
     document.getElementById("chartTitle").textContent = "Histogram of AI/ML Job Salaries in USD";
@@ -179,7 +168,6 @@ function drawScene1(data) {
     document.getElementById("selectedYear").textContent = selectedYear;
 
     const yearData = data.filter(d => d.work_year === selectedYear);
-    // const yearData = data.filter(d => d.work_year === 2023);
 
     const xScale = d3.scaleLinear()
         .domain([0, d3.max(yearData, d => d.salary_in_usd)])
